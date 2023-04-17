@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html test_>
+<head>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+	 <script src="Lab2.js" type="text/javascript"></script>
+	 <!--<script src="https://gist.github.com/raechelportelli/91c6caf9af3daf85a7a2fe1eec079a10.js"></script> -->
+	 <script src="UniversityLocation.js" type="text/javascript"></script>
+	 <style>
+		.info {
+			padding: 6px 8px;
+			font: 14px/16px Arial, Helvetica, sans-serif;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 5px;
+		}
+		.info h4 {
+			margin: 0 0 5px;
+			color: #777;
+		}
+
+		.legend { 
+		text-align: left; line-height: 18px; color: #555; 
+		} 
+
+		.legend i { 
+		width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; 
+		}
+		#mapDIV{
+			height: 400px;
+			width: 600px;
+			border: solid 1px black;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="mapDIV"></div>
+	
+	<script>
+	var map = L.map('mapDIV',{
+		center: [40.1164, -88.2434],
+		zoom: 5
+	});
+	
+	//const IllinoisGeoJSON = L.geoJson(IllioisGJSON).addTo(myMap);
+	
+	//function formats the shape color based on the attribute d's value
+	
+	function getColor(EdNorm) {
+    return EdNorm > 35.19  ? '#BD0026' :
+           EdNorm > 22.91  ? '#E31A1C' :
+           EdNorm > 12.87  ? '#FC4E2A' :
+           EdNorm > 0  ? '#FD8D3C' :
+                      '#FFEDA0';
+	}
+	
+	function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.EdNorm), //color by density attribute
+        weight: 0.5, //line weight
+        opacity: 1, //line opacity
+        color: 'black', //line color
+        fillOpacity: 0.7 //shape file
+    };
+	}
+	
+	function highlightFeature(e) {
+		const layer = e.target;
+
+		layer.setStyle({
+			weight: 5,
+			color: 'white',
+			fillOpacity: 0.9
+		});
+
+		layer.bringToFront();
+
+		//info.update(layer.feature.properties); //we will use this in a bit.
+	}
+	
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		//info.update();
+	}
+	
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight,
+			//click: zoomToFeature
+		});
+	}
+	
+	const geojson = L.geoJson(IllinoisGJSON, {
+		style,
+		onEachFeature //This is the important new function connection 
+	}).addTo(map);
+	
+
+	
+	const UniversityLoc = L.geoJson(UniLoc, {
+
+	}).addTo(map);
+	
+		
+	//locates the legend in the bottom right of the map
+	var legend = L.control({position: 'bottomright'});
+		
+	//adds the legend to the map in a <div> 
+	legend.onAdd = function (map) {
+
+		var div = L.DomUtil.create('div', 'info legend'),
+			grades = [12.87 , 22.91, 35.19],
+			labels = ["EN1","EN2","EN3"];
+
+	// loop through our EdNorm intervals and generate a label and colored square
+		for (var i = 0; i < grades.length; i++) {
+			div.innerHTML +=
+				'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+				grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+		}
+
+		return div;
+	};
+
+	//adds the legend to the map
+	legend.addTo(map);
+	
+	
+	var Esri_WorldTerrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS'
+	});
+	
+	var Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+	}).addTo(map);
+	
+	var basemaps = {
+		"OSM":Esri_WorldTerrain,
+		"ST":Stamen_TonerLite
+	};
+	L.control.layers(basemaps).addTo(map);
+
+	
+	
+	
+	</script>
+	
+	
+	
+</body>
+</html>

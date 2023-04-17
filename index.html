@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html test_>
+<head>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+	 <script src="PointsLayer-geojson.js" type="text/javascript"></script>
+	<style>
+		#mapDIV{
+			height: 400px;
+			width: 600px;
+			border: solid 1px black;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="mapDIV"></div>
+	
+	<script>
+	var myMap = L.map('mapDIV',{
+		center: [39.7392, -104.9903],
+		zoom: 7
+	});
+	
+	
+	var options1 = {
+		color: 'red',
+		radius: 5,
+		weight: 3
+	};
+	
+	var options2 = {
+		color: 'green',
+		radius: 5,
+		weight: 3
+	};
+	
+	var options3 = {
+		color: 'blue',
+		radius: 5,
+		weight: 3
+	};
+	
+	
+	
+	var first_loc = L.circleMarker([38.8339,-104.8214],options1);
+	var second_loc = L.circleMarker([39.0710,-106.9890],options2);
+	var ip = L.circleMarker([39.1086, -106.5640],options3);
+	var mp = L.circleMarker([38.8409, -105.0423],options3);
+	
+	var Locs = L.layerGroup([first_loc,second_loc,ip,mp]
+	);
+	
+	
+	var Denver = L.marker([39.7392, -104.9903]);
+	
+	var bounds = [[39.1086, -106.5640], [38.8409, -105.0423]];
+
+	// create an orange rectangle
+	var Rect = L.rectangle(bounds, {color: "#ff7800", weight: 1});
+	var polygonPoints = [
+                [40.5853, -105.0844],
+                [40.3978, -105.0750],
+                [40.4233, -104.7091]];
+	var poly = L.polygon(polygonPoints)
+	
+	var PointsLayer = L.geoJSON(PointLayer,{color:'green'});
+	
+	var Esri_WorldTerrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS'
+	}).addTo(myMap);
+	
+	var Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+	});
+	
+	var basemaps = {
+		"OSM":Esri_WorldTerrain,
+		"ST":Stamen_TonerLite
+	};
+	
+	var overlays = {
+		"Locs": Locs,
+		"Capital":Denver,
+		"ItoP": Rect,
+		"Polygon":poly,
+		"geojson":PointsLayer
+	};
+	PointsLayer.addTo(myMap);
+	L.control.layers(basemaps,overlays).addTo(myMap);
+	
+	first_loc.bindPopup('Colorado springs');
+	second_loc.bindPopup('Maroon bells');
+	ip.bindPopup('Independent pass');
+	mp.bindPopup('Pike\'s peak');
+	Denver.bindPopup('Capital denver');
+	Rect.bindPopup('Independent pass to pike\'s peak');
+	
+	</script>
+	
+	
+</body>
+</html>
