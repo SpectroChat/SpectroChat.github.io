@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html test_>
+<title>Heatmap Lab4</title>
+<head>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+	 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	 <script src="leaflet-heat.js"></script>
+	 <script src="UniversityLocation.js" type="text/javascript"></script>
+	 <style>
+		#mapDIV{
+			height: 400px;
+			width: 600px;
+			border: solid 1px black;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="mapDIV"></div>
+	
+	<script>
+	var map = L.map('mapDIV',{
+		center: [40.1164, -88.2434],
+		zoom: 5
+	});
+	
+	
+	
+	
+	var Esri_WorldTerrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS'
+	});
+	
+	var Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+	}).addTo(map);
+	
+	
+	/*const geojsonLayer = L.geoJson();
+	
+	$.getJSON("https://gist.githubusercontent.com/raechelportelli/91c6caf9af3daf85a7a2fe1eec079a10/raw/28c42649557d8e286c54bc9ef97af4c17bafdd96/secondEd.geojson",
+	 function(data) {
+ 
+	geojsonLayer.addData(data);
+	});
+	geojsonLayer.addTo(map);
+	console.log(geojsonLayer._layers);
+	*/
+	
+	const geojsonLayer = L.geoJson(UniLoc, {
+
+	});//.addTo(map);
+	
+	var heatData = [];
+	geojsonLayer.eachLayer(function(layer) {
+		var latlng = layer.getLatLng();
+		//console.log(latlng);
+		var value = layer.value;
+		heatData.push([latlng.lat, latlng.lng, value]);
+	});
+	console.log(heatData);
+	
+	var heatLayer = L.heatLayer(heatData, {
+				radius: 100,
+				blur: 10,
+				opacity: 1,
+				maxZoom: 17,
+				max: 4.0,
+				
+				gradient: {
+					0.0: 'green',
+					0.5: 'yellow',
+					1.0: 'red'}
+        
+			}).addTo(map);
+		
+	
+	</script>
+	
+	
+	
+</body>
+</html>
