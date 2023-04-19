@@ -44,7 +44,6 @@
         .attr('text-anchor', 'middle')
         .style('font-family', 'Helvetica')
         .style('font-size', 12)
-		.attr("font-weight", 300)
 		.text('Count of Accidents(Dependant)');
 	
         
@@ -52,7 +51,7 @@
         // Y label
         svg.append('text')
         .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(60,' + height + ')rotate(-90)')
+        .attr('transform', 'translate(130,' + height + ')rotate(-90)')
         .style('font-family', 'Helvetica')
         .style('font-size', 12)
 		.text('Severity (Independant)');
@@ -75,12 +74,12 @@
             .selectAll("dot")
             .data(data)
             .enter()
-            .append("circle")
+            .append("rect")
             .attr("cy", d=> yScale(d.Severity))
             .attr("cx", d=> xScale(d.Accidents))
-            .attr("r", 3)
+            .attr("r", 5)
             .attr("transform", "translate(" + 100 + "," + 100 + ")")
-            .style("fill", "#69b3a2");
+            .style("fill", "#00aa88");
         });
 		
 		
