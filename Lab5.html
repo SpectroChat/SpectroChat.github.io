@@ -21,8 +21,8 @@
             height = svg.attr("height") - margin //200
 
         // Step 4 
-        var xScale = d3.scaleLinear().domain([0, 3]).range([0, width]),
-            yScale = d3.scaleLinear().domain([0, 800000]).range([height, 0]);
+        var yScale = d3.scaleLinear().domain([0, 3]).range([0, width]),
+            xScale = d3.scaleLinear().domain([0, 800000]).range([height, 0]);
             
         var g = svg.append("g")
             .attr("transform", "translate(" + 100 + "," + 100 + ")");
@@ -35,7 +35,7 @@
         .attr('text-anchor', 'middle')
         .style('font-family', 'Helvetica')
         .style('font-size', 20)
-        .text('Title: Scatter Plot title changed');
+        .text('Title: Scatter Plot axes changed');
         
         // X label
         svg.append('text')
@@ -73,8 +73,8 @@
             .data(data)
             .enter()
             .append("circle")
-            .attr("cx", d=> xScale(d.Severity))
-            .attr("cy", d=> yScale(d.Accidents))
+            .attr("cy", d=> xScale(d.Severity))
+            .attr("cx", d=> yScale(d.Accidents))
             .attr("r", 2)
             .attr("transform", "translate(" + 100 + "," + 100 + ")")
             .style("fill", "#69b3a2");
