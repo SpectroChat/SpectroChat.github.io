@@ -45,6 +45,8 @@
         .style('font-family', 'Helvetica')
         .style('font-size', 12)
 		.text('Count of Accidents(Dependant)');
+		.attr("font-weight",function(d,i) {return i*100+100;})
+		.text( function(d) {return d;});
         
         
         // Y label
@@ -80,6 +82,8 @@
             .attr("transform", "translate(" + 100 + "," + 100 + ")")
             .style("fill", "#69b3a2");
         });
+		
+		
 
   
 </script>
