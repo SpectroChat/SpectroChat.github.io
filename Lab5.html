@@ -35,7 +35,7 @@
         .attr('text-anchor', 'middle')
         .style('font-family', 'Helvetica')
         .style('font-size', 20)
-        .text('Title: Axes changed');
+        .text('Title: Color changed');
         
         // X label
         svg.append('text')
@@ -77,9 +77,9 @@
             .append("circle")
             .attr("cy", d=> yScale(d.Severity))
             .attr("cx", d=> xScale(d.Accidents))
-            .attr("r", 3)
+            .attr("r", 10)
             .attr("transform", "translate(" + 100 + "," + 100 + ")")
-            .style("fill", "#69b3a2");
+            .style("fill", "#4169e1");
         });
 		
 		
