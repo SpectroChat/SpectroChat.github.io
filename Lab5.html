@@ -51,7 +51,7 @@
         // Y label
         svg.append('text')
         .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(130,' + height + ')rotate(-90)')
+        .attr('transform', 'translate(60,' + height+100 + ')rotate(-90)')
         .style('font-family', 'Helvetica')
         .style('font-size', 12)
 		.text('Severity (Independant)');
@@ -74,12 +74,12 @@
             .selectAll("dot")
             .data(data)
             .enter()
-            .append("rect")
+            .append("Square")
             .attr("cy", d=> yScale(d.Severity))
             .attr("cx", d=> xScale(d.Accidents))
             .attr("r", 5)
             .attr("transform", "translate(" + 100 + "," + 100 + ")")
-            .style("fill", "#00aa88");
+            .style("fill", "#69b3a2");
         });
 		
 		
