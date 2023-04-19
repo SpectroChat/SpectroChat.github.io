@@ -18,10 +18,10 @@
         var svg = d3.select("svg"),
            margin = 200,
             width = svg.attr("width") - margin, //300
-            height = svg.attr("height") - margin //200
+            height = svg.attr("height") - margin //300
 
         // Step 4 
-        var yScale = d3.scaleLinear().domain([0, 3]).range([0, width]),//
+        var yScale = d3.scaleLinear().domain([0, 3]).range([width,0]),//
             xScale = d3.scaleLinear().domain([0, 800000]).range([0, height]);
             
         var g = svg.append("g")
