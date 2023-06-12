@@ -192,7 +192,7 @@ function classification(method, nClass, item) {
 function draw_baseMap(mDIV, variables, trace) {
 
 	var traceDiv = document.getElementById(mDIV).getElementsByClassName("trace")[0];
-	var html_trace = 'Trace: <select id="traceSelect" class="traceSelect" onChange="trace_selected(\''+mDIV+'\')">';
+	var html_trace = 'Variables: <select id="traceSelect" class="traceSelect" onChange="trace_selected(\''+mDIV+'\')">';
 	//html_trace += '<option value="' + TRACE1 + '" class="line_none">' + TRACE1 + '</option>';
 	//html_trace += '<option value="' + TRACE2 + '" class="line_none">' + TRACE2 + '</option>';
 	for (var i=1; i<variables.length; i++) {
