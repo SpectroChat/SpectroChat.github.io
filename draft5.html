@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html test_>
+<title>Geovisualization of obesity and diabetes</title>
+<head>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+	 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	 <script src="nosd.js"></script>
+	 <script src="leaflet-heat.js"></script>
+	 <script src="https://d3js.org/d3.v6.min.js"></script>
+	 <style>
+		.info {
+			padding: 6px 8px;
+			font: 14px/16px Arial, Helvetica, sans-serif;
+			background: white;
+			background: rgba(255,250,255,0.8);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 5px;
+		}
+		.info h4 {
+			margin: 0 0 5px;
+			color: #777;
+		}
+
+		.legend { 
+		text-align: left; line-height: 18px; color: #555; 
+		} 
+
+		.legend i { 
+		width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; 
+		}
+		#mapDIV{
+		    top: 120px;
+			height: 600px;
+			width: 1000px;
+			border: solid 2px black;
+		}
+		   #narrative {
+      padding: 20px;
+      font-size: 20px;
+      background-color: rgba(255, 255, 255, 0.9);
+      position: absolute;
+      top: 120px;
+      left: 1050px; /* Adjust the left position as needed */
+      width: 400px; /* Adjust the width as needed */
+      border-radius: 8px;
+    }
+	
+	    #title {
+      text-align: center;
+      font-size: 20px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      width: 100%;
+      border-radius: 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+	
+	 
+
+	</style>
+</head>
+
+<body>
+	<div id="mapDIV"></div>
+	<div id="title"><h1>Geovisualization of obesity and type-2 diabetes by states in the USA</h1></div>
+	<!-- Add the narrative description div -->
+  <div id="narrative">
+    <h2>Obesity and Type-2 Diabetes in the USA</h2>
+    <p><i>
+      
+	  The map beside gives the option to zoom in the map. The burger menu on the right side of the map provides the option to select different base layers and choropleth map or heatmap.
+
+      The choropleth map represents the obesity rates by state, where darker shades indicate higher obesity rates. Hovering the mouse on the states will display both the obesity and diabetes rate for a particular state. 
+      Additionally, the heatmap layer showcases the prevalence of type-2 diabetes across the country.
+    </i></p>
+    <p>
+	Obesity and type-2 diabetes are significant health issues in the United States. 
+      It is essential to address these health concerns through education, awareness, and promoting a healthy lifestyle that includes regular physical activity and balanced nutrition.
+    </p></div>
+	
+
+	
+	<script>
+	var map = L.map('mapDIV',{
+		center: [39.1974, -96.5847],
+		//center: [34.1974, -66.5847],
+		zoom: 4
+	});
+	
+	function getColor(Obesity) {
+    return Obesity > 36  ? '#BD0026' :
+           Obesity > 32  ? '#E31A1C' :
+           Obesity > 27  ? '#FC4E2A' :
+           Obesity > 20  ? '#FD8D3C' :
+                      '#FFEDA0';
+	}
+	
+	function style(feature) {
+    return {
+        fillColor: getColor(feature.properties.Obesity), //color by density attribute
+        weight: 0.5, //line weight
+        opacity: 1, //line opacity
+        color: 'black', //line color
+        fillOpacity: 0.7 //shape file
+    };
+	}
+	
+	
+
+	//info.addTo(map);
+	
+	function highlightFeature(e) {
+		const layer = e.target;
+
+		layer.setStyle({
+			weight: 5,
+			color: 'yellow',
+			fillOpacity: 0.9
+		});
+
+		layer.bringToFront();
+		info.update(layer.feature.properties);
+
+		//info.update(layer.feature.properties); //we will use this in a bit.
+	}
+	
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		info.update();
+	}
+	
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight,
+			//click: zoomToFeature
+		});
+	}
+	
+
+	var geojson = L.geoJson(NO, {
+	style,
+	onEachFeature,
+	
+
+	});//.addTo(map);
+	
+
+	
+	var Esri_WorldTerrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS'
+	});
+	
+	var Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+	}).addTo(map);
+	
+	var legend = L.control({position: 'bottomright'});
+		
+	//adds the legend to the map in a <div> 
+	legend.onAdd = function (map) {
+
+		var div = L.DomUtil.create('div', 'info legend'),
+			grades = [20,27 ,32, 36],
+			labels = ["EN0","EN1","EN2","EN3"];
+
+	// loop through our EdNorm intervals and generate a label and colored square
+		for (var i = 0; i < grades.length; i++) {
+			div.innerHTML +=
+				'<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+				grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+		}
+
+		return div;
+	};
+
+	//adds the legend to the map
+	//legend.addTo(geojson);
+	
+	
+	
+	var heatData = [];
+	geojson.eachLayer(function(layer) {
+		var latlng = layer.getBounds().getCenter();//layer.getLatLng();
+		//console.log(latlng);
+		var value = layer.DB;//layer.value;
+		heatData.push([latlng.lat, latlng.lng, value]);
+	});
+	//console.log(heatData);
+	
+	var heatLayer = L.heatLayer(heatData, {
+				radius: 100,
+				blur: 5,
+				opacity: 1,
+				maxZoom: 17,
+				max: 4.0,
+				
+				gradient: {
+					0.0: 'green',
+					0.5: 'yellow',
+					1.0: 'red'}
+        
+			});//.addTo(map);
+			
+	var basemaps = {
+		"OSM":Esri_WorldTerrain,
+		"ST":Stamen_TonerLite
+	};
+	
+	var overlays = {
+		"Choropleth map obesity":geojson,
+		"Heatmap DB":heatLayer
+	};
+	
+		var info = L.control();
+
+	info.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+		this.update();
+		return this._div;
+	};
+	
+	info.update = function (edu) {
+		const contents = edu ? `<b>Obesity=${edu.Obesity} % Diabetes=${edu.DB}%</b><br />${edu.NAME}` : 'Hover over a state';
+		this._div.innerHTML = `<h4>Obesity(%) & Type-2 diabetes(%) by state</h4>${contents}`;
+	};
+	
+
+	L.control.layers(basemaps,overlays).addTo(map);
+	
+	
+	
+	geojson.beforeAdd = function (map) {
+    legend.addTo(map);
+	info.addTo(map);
+	
+	
+	}
+	heatLayer.beforeAdd = function (map) {
+    legend.remove(map);
+	info.remove(map);
+	}
+
+
+	
+	</script>
+	
+	
+	
+</body>
+</html>

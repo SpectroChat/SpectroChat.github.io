@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Visualization of obesity and diabetes</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualization of obesity and diabetes</title>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  
+  <style>
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      outline: none;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px #999;
+    }
+
+    .button:hover {
+      box-shadow: 0 2px #666;
+    }
+
+    .scatter-button {
+      background-color: #4CAF50; /* Green */
+    }
+
+    .bar-button {
+      background-color: #0074D9; /* Blue */
+    }
+
+    .geo-button {
+      background-color: #FF4136; /* Red */
+    }
+
+    .button:active {
+      box-shadow: 0 1px #666;
+      transform: translateY(2px);
+    }
+  
+    .bar {
+      fill: steelblue;
+    }
+    
+    .tooltip {
+      position: absolute;
+      background-color: #f9f9f9;
+      padding: 6px;
+      border: 1px solid #ccc;
+      pointer-events: none;
+      font-size: 14px;
+    }
+    
+    .x-axis text {
+      transform: translate(-10px, 0px) rotate(-45deg);
+      text-anchor: end;
+    }
+  </style>
+</head>
+<body>
+  <center>
+    <h1>Visualization of statewide obesity and type-2 diabetes in the USA</h1>
+    <p><i>Navigate and press the buttons below to see different visualizations</i></p>
+	<p><i>The Bar-plot contains an interactive dropdown selection menu on the top-right corner to select either obesity or diabetes</i></p>
+	<p><i>The Geovisualization-plot will appear in a new window. </i></p>
+  </center>
+  <div id="chart"></div>
+  <div id="ScatterNarrative" class="info" style="position: absolute; top: 540px; right: 150px; left: 50px;"></div>
+
+  <!-- Add Scatter-plot, Bar-plot, and Geovisualization-plot buttons -->
+  <div style="display: flex; justify-content: center; position: absolute; bottom: 20px; left: 0; right: 0;">
+    <button class="button scatter-button" onclick="showScatterPlot()">Scatter-plot</button>
+    <button class="button bar-button" onclick="showBarPlot()">Bar-plot</button>
+    <button class="button geo-button" onclick="showGeoPlot()">Geovisualization-plot</button>
+  </div>
+
+
+  <script>
+  
+  
+    function showGeoPlot() {
+      // Open the second code in a new window
+      const newWindow = window.open("draft5.html", "_blank");
+    }
+  
+  
+  let dropdownMenu;
+  
+  function removePlot() {
+      d3.select("#chart svg").remove();
+      const ScatterNarrative = document.getElementById("ScatterNarrative");
+      ScatterNarrative.innerHTML = '';
+	  
+	    // Remove the dropdown menu if it exists
+	  if (dropdownMenu) {
+		dropdownMenu.remove();
+		dropdownMenu = undefined; // Reset the dropdownMenu variable
+	  }
+    }
+  
+  
+    function CreateScatterPlot() {
+      // Set up the dimensions and margins for the chart
+      const margin = { top: 50, right: 100, bottom: 50, left: 100 };
+      const width = 1400 - margin.left - margin.right; // Increased width
+      const height = 400 - margin.top - margin.bottom;
+
+      // Create an SVG element for the chart
+      const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // Load the CSV data
+      d3.csv("https://spectrochat.github.io/data_project.csv").then(data => {
+        // Convert string data to numbers
+        data.forEach(d => {
+          d.Obesity = +d.Obesity;
+          d.Diabetes = +d.Diabetes;
+        });
+
+        // Create scales for X and Y axes
+        const xScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.Obesity))
+          .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.Diabetes))
+          .range([height, 0]);
+
+        // Create a scale for circle radius based on "Obesity" field
+        const radiusScale = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.Obesity))
+          .range([3, 10]); // Define the minimum and maximum radius values
+
+        // Create separate color scales for "Obesity" and "Diabetes" values
+        const colorScaleObesity = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.Obesity))
+          .range(["#ccece6", "#006d2c"]); // Lighter to darker shades of green
+
+        const colorScaleDiabetes = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.Diabetes))
+          .range(["#f0f9e8", "#31a354"]); // Lighter to darker shades of green
+
+        // Function to get the combined color based on "Obesity" and "Diabetes" values
+        const getColor = (d) => {
+          const colorObesity = colorScaleObesity(d.Obesity);
+          const colorDiabetes = colorScaleDiabetes(d.Diabetes);
+          return d3.interpolate(colorObesity, colorDiabetes)(0.5);
+        };
+
+        // Add X axis with label
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(xScale))
+          .append("text")
+          .attr("x", width / 2)
+          .attr("y", 35)
+          .attr("fill", "#000")
+          .attr("text-anchor", "middle")
+          .text("Obesity");
+
+        // Add Y axis with label
+        svg.append("g")
+          .call(d3.axisLeft(yScale))
+          .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", -40)
+          .attr("x", -height / 2)
+          .attr("fill", "#000")
+          .attr("text-anchor", "middle")
+          .text("Diabetes");
+
+        // Add data points as circles with dynamic radius and color shading
+        svg.selectAll("circle")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", d => xScale(d.Obesity))
+          .attr("cy", d => yScale(d.Diabetes))
+          .attr("r", 0) // Initialize the circles with a radius of 0
+          .attr("fill", d => getColor(d)) // Set the color based on "Obesity" and "Diabetes" values
+          .attr("stroke", "#000") // Set black outlines for the circles
+          .attr("stroke-width", 1) // Adjust the stroke width as needed
+          .on("mouseover", function (event, d) {
+            // Show the tooltip on mouseover
+            const tooltip = svg.append("g")
+              .attr("class", "tooltip2")
+              .attr("transform", `translate(${xScale(d.Obesity)},${yScale(d.Diabetes)})`);
+
+            tooltip.append("rect")
+              .attr("x", 10)
+              .attr("y", -50)
+              .attr("width", 170)
+              .attr("height", 60)
+              .attr("fill", "#f9f9f9")
+              .attr("stroke", "#ccc");
+
+            tooltip.append("text")
+              .attr("x", 20)
+              .attr("y", -30)
+              .style("font-size", "12px")
+              .text(`State: ${d.State}`);
+
+            tooltip.append("text")
+              .attr("x", 20)
+              .attr("y", -15)
+              .style("font-size", "12px")
+              .text(`Obesity: ${d.Obesity}%`);
+
+            tooltip.append("text")
+              .attr("x", 20)
+              .attr("y", 0)
+              .style("font-size", "12px")
+              .text(`Diabetes: ${d.Diabetes}%`);
+          })
+          .on("mouseout", function () {
+            // Remove the tooltip on mouseout
+           d3.selectAll(".tooltip2").remove();
+          })
+          .transition() // Add the transition to the circles
+          .duration(1000) // Set the duration of the transition (in milliseconds)
+          .attr("r", d => radiusScale(d.Obesity)); // Set the final radius based on "Obesity" value
+      });
+
+      const ScatterNarrative = document.getElementById("ScatterNarrative");
+      ScatterNarrative.innerHTML = `
+        <h2>Scatterplot description</h2>
+        <p>
+          The D3 scatter plot visualizes the relationship between Obesity and Diabetes percentages in various states across the United States. The X-axis represents Obesity percentages, and the Y-axis represents Diabetes percentages. Each circle represents a state, with its position on the chart determined by its Obesity and Diabetes values. The size of each circle corresponds to the Obesity percentage in that state.
+ 
+          From the scatter plot, we can observe a general positive correlation between Obesity and Diabetes percentages. States with higher Obesity percentages tend to have higher Diabetes percentages as well. Additionally, the color shading of the circles represents both Obesity and Diabetes values, allowing us to identify states with higher or lower values in each category.
+        
+          It is evident that certain states exhibit higher rates of both Obesity and Diabetes, while others have lower rates. States in the top right quadrant of the chart have higher levels of both Obesity and Diabetes, indicating a potential link between the two health conditions. On the other hand, states in the bottom left quadrant have lower rates for both variables.
+        
+        
+          The interactive nature of the plot allows users to hover over each circle and view additional information, such as the state name, Obesity percentage, and Diabetes percentage. This provides a more detailed insight into each data point and facilitates a deeper understanding of the correlation between Obesity and Diabetes across the United States.
+        </p>
+      `;
+    }
+	
+	
+	  function showScatterPlot() {
+      // Remove the bar plot and narrative description if they exist
+      removePlot();
+
+      // Call the function to create the scatter plot and narrative description
+      CreateScatterPlot();
+    }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// Function to create the demo bar plot and narrative description
+    function createBarPlot() {
+	let selectedOption = "Obesity"; // Set the initial selected option to "Obesity"
+      // Remove the scatter plot and narrative description if they exist
+      removePlot();
+	  
+	  // Add a dropdown menu
+    dropdownMenu = d3.select("body")
+        .append("select")
+        .attr("id", "dropdown-menu")
+        .style("position", "absolute")
+        .style("top", "20px")
+        .style("right", "20px")
+        .on("change", function () {
+            selectedOption = this.value;
+            updateBarPlot(selectedOption); // Call the function to update the bar plot when a new option is selected
+        });
+		
+		
+		
+
+    const dropdownOptions = ["Obesity", "Diabetes"];
+
+    dropdownMenu.selectAll("option")
+        .data(dropdownOptions)
+        .enter()
+        .append("option")
+        .attr("value", d => d)
+        .text(d => d);
+
+    // Function to update the bar plot based on the selected option
+    function updateBarPlot(selectedOption) {
+        d3.csv("https://spectrochat.github.io/data_project.csv")
+            .then(function (data) {
+                data.forEach(function (d) {
+                    d.Obesity = +d.Obesity;
+                    d.Diabetes = +d.Diabetes;
+                });
+                
+
+                const margin = { top: 30, right: 30, bottom: 100, left: 60 }; // Increase bottom margin to make space for longer X-axis labels
+                const width = 1400 - margin.left - margin.right; // Increase the overall width
+                const height = 400 - margin.top - margin.bottom; // Increase the overall height
+
+                // Remove the previous SVG if it exists
+                d3.select("svg").remove();
+
+                const svg = d3.select("#chart")
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                // Select the data based on the selected option
+                const selectedData = (selectedOption === "Obesity") ? data : data.map(d => ({ State: d.State, Obesity: d.Diabetes }));
+
+                // Create the x and y scales
+                const xScale = d3.scaleBand()
+                    .domain(selectedData.map(d => d.State))
+                    .range([0, width])
+                    .padding(0.1);
+
+                const yScale = d3.scaleLinear()
+                    .domain([0, d3.max(selectedData, d => d.Obesity)])
+                    .range([height, 0]);
+
+                // Create the bars
+                svg.selectAll(".bar")
+                    .data(selectedData)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar")
+                    .attr("x", d => xScale(d.State))
+                    .attr("y", d => yScale(d.Obesity))
+                    .attr("width", xScale.bandwidth())
+                    .attr("height", d => height - yScale(d.Obesity))
+                    .on("mouseover", function (event, d) {
+                        // Show the tooltip on mouseover
+                        const tooltip = d3.select("#chart")
+                            .append("div")
+                            .attr("class", "tooltip")
+                            .style("left", event.pageX + "px")
+                            .style("top", event.pageY + "px");
+
+                        tooltip.html(`<strong>State:</strong> ${d.State}<br><strong>${selectedOption}:</strong> ${d.Obesity}%`);
+                    })
+                    .on("mouseout", function () {
+                        // Remove the tooltip on mouseout
+                        d3.select(".tooltip").remove();
+                    });
+
+                // Create the x and y axis
+                const xAxis = d3.axisBottom(xScale)
+                    .tickFormat(d => d) // Ensure the state names are displayed without any formatting
+                    .tickSize(0) // Hide the tick lines
+                    .tickPadding(8) // Adjust the distance between labels and axis line
+                    .tickValues(xScale.domain()); // Set tick values to ensure all state names are displayed
+
+                const yAxis = d3.axisLeft(yScale);
+
+                svg.append("g")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis)
+                    .selectAll("text")
+                    .attr("class", "x-axis")
+                    .style("text-anchor", "end")
+                    .attr("dx", "-0.8em") // Move the labels slightly to the left
+                    .attr("dy", "0.15em") // Adjust the vertical position of the labels
+                    .attr("transform", "rotate(-45)"); // Rotate the labels at a 45-degree angle
+
+                svg.append("g")
+                    .call(yAxis);
+
+                //barPlotCreated = true;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+	
+		// Function to update the narrative description based on the selected option
+    function updateNarrativeDescription(selectedOption) {
+		const barNarrative = document.getElementById("ScatterNarrative");
+		
+        if (selectedOption === "Obesity") {
+            barNarrative.innerHTML = `
+                <h2>Obesity Bar Plot</h2>
+                <p>
+                    This bar plot represents the obesity rates by state in the United States. Each bar corresponds to a state, and the height of the bar indicates the obesity rate in that state.
+                </p>
+                <p>
+                    The bar plot provides a visual comparison of obesity rates across different states, highlighting the states with higher obesity prevalence.
+                </p>
+				<p>
+                    Hovering the cursor over each bar will display the state name and obesity%
+                </p>
+            `;
+        } else if (selectedOption === "Diabetes") {
+            barNarrative.innerHTML = `
+                <h2>Type-2 Diabetes Bar Plot</h2>
+                <p>
+                    This bar plot represents the prevalence of type-2 diabetes by state in the United States. Each bar corresponds to a state, and the height of the bar indicates the percentage of the population affected by type-2 diabetes in that state.
+                </p>
+                <p>
+                    The bar plot allows for a quick comparison of type-2 diabetes rates among different states, helping to identify regions with higher prevalence.
+                </p>
+				<p>
+                    Hovering the cursor over each bar will display the state name and type-2 diabetes%
+                </p>
+            `;
+        }
+    }
+
+    // Call the function to update the narrative description
+    updateNarrativeDescription(selectedOption);
+	  document.getElementById("dropdown-menu").addEventListener("change", function () {
+        selectedOption = this.value;
+        updateNarrativeDescription(selectedOption);
+    });
+	
+
+    // Initially, create the bar plot with the default option
+
+    updateBarPlot(selectedOption);
+    }
+
+    // Function to show the scatter plot and narrative description
+    function showBarPlot() {
+      // Remove the bar plot and narrative description if they exist
+      removePlot();
+
+      // Call the function to create the scatter plot and narrative description
+      createBarPlot();
+    }
+
+
+   
+	
+  </script>
+</body>
+</html>
