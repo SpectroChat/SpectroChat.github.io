@@ -43,9 +43,7 @@
       transform: translateY(2px);
     }
   
-    .bar {
-      fill: steelblue;
-    }
+    
     
     .tooltip {
       position: absolute;
@@ -70,10 +68,10 @@
 	<p><i>The Geovisualization-plot will appear in a new window. </i></p>
   </center>
   <div id="chart"></div>
-  <div id="ScatterNarrative" class="info" style="position: absolute; top: 540px; right: 150px; left: 50px;"></div>
+  <div id="ScatterNarrative" class="info" style="position: absolute; top: 540px; right: 50px; left: 50px;"></div>
 
   <!-- Add Scatter-plot, Bar-plot, and Geovisualization-plot buttons -->
-  <div style="display: flex; justify-content: center; position: absolute; bottom: 20px; left: 0; right: 0;">
+  <div style="display: flex; justify-content: center; position: absolute; bottom: 10px; left: 0; right: 0;">
     <button class="button scatter-button" onclick="showScatterPlot()">Scatter-plot</button>
     <button class="button bar-button" onclick="showBarPlot()">Bar-plot</button>
     <button class="button geo-button" onclick="showGeoPlot()">Geovisualization-plot</button>
@@ -106,7 +104,7 @@
   
     function CreateScatterPlot() {
       // Set up the dimensions and margins for the chart
-      const margin = { top: 50, right: 100, bottom: 50, left: 100 };
+      const margin = { top: 50, right: 200, bottom: 50, left: 200 };
       const width = 1400 - margin.left - margin.right; // Increased width
       const height = 400 - margin.top - margin.bottom;
 
@@ -155,6 +153,46 @@
           const colorDiabetes = colorScaleDiabetes(d.Diabetes);
           return d3.interpolate(colorObesity, colorDiabetes)(0.5);
         };
+		
+		
+		const meanDiabetes = d3.mean(data, d => d.Diabetes);
+		const meanObesity = d3.mean(data, d => d.Obesity);
+
+	  // Add a red dashed horizontal line at the mean of Diabetes values
+	  svg.append("line")
+		.attr("x1", 0)
+		.attr("x2", width)
+		.attr("y1", yScale(meanDiabetes))
+		.attr("y2", yScale(meanDiabetes))
+		.style("stroke", "red")
+		.style("stroke-dasharray", "3 3");
+		
+		 // Add the comment "Average diabetes" on the right side of the red dashed line
+	  svg.append("text")
+		.attr("x", width) // Adjust the horizontal position as needed
+		.attr("y", yScale(meanDiabetes))
+		.attr("text-anchor", "start")
+		.style("fill", "red")
+		.text("Avg diabetes");
+
+		
+
+	  // Add a red dashed vertical line at the mean of Obesity values
+	  svg.append("line")
+		.attr("x1", xScale(meanObesity))
+		.attr("x2", xScale(meanObesity))
+		.attr("y1", 0)
+		.attr("y2", height)
+		.style("stroke", "red")
+		.style("stroke-dasharray", "3 3");
+		
+		  // Add the comment above the red dashed line
+	  svg.append("text")
+		.attr("x", xScale(meanObesity))
+		.attr("y", -10) // Adjust the vertical position as needed
+		.attr("text-anchor", "middle")
+		.style("fill", "red")
+		.text("Avg obesity");
 
         // Add X axis with label
         svg.append("g")
@@ -229,10 +267,12 @@
           .duration(1000) // Set the duration of the transition (in milliseconds)
           .attr("r", d => radiusScale(d.Obesity)); // Set the final radius based on "Obesity" value
       });
+	  
+
 
       const ScatterNarrative = document.getElementById("ScatterNarrative");
       ScatterNarrative.innerHTML = `
-        <h2>Scatterplot description</h2>
+        <h2>Scatterplot of statewide obesity and type-2 diabetes </h2>
         <p>
           The D3 scatter plot visualizes the relationship between Obesity and Diabetes percentages in various states across the United States. The X-axis represents Obesity percentages, and the Y-axis represents Diabetes percentages. Each circle represents a state, with its position on the chart determined by its Obesity and Diabetes values. The size of each circle corresponds to the Obesity percentage in that state.
  
@@ -241,9 +281,11 @@
           It is evident that certain states exhibit higher rates of both Obesity and Diabetes, while others have lower rates. States in the top right quadrant of the chart have higher levels of both Obesity and Diabetes, indicating a potential link between the two health conditions. On the other hand, states in the bottom left quadrant have lower rates for both variables.
         
         
-          The interactive nature of the plot allows users to hover over each circle and view additional information, such as the state name, Obesity percentage, and Diabetes percentage. This provides a more detailed insight into each data point and facilitates a deeper understanding of the correlation between Obesity and Diabetes across the United States.
+          The interactive nature of the plot allows users to hover over each circle and view additional information, such as the state name, Obesity percentage, and Diabetes percentage. This provides a more detailed insight into each data point and facilitates a deeper understanding of the correlation between Obesity and Diabetes across the United States. The red dashed line represents the average values of obesity and diabetes of all states.
         </p>
       `;
+	  
+	    
     }
 	
 	
@@ -330,6 +372,11 @@
                 const yScale = d3.scaleLinear()
                     .domain([0, d3.max(selectedData, d => d.Obesity)])
                     .range([height, 0]);
+					
+				const meanValue = d3.mean(selectedData, d => d.Obesity); // Calculate the mean value
+
+    
+
 
                 // Create the bars
                 svg.selectAll(".bar")
@@ -341,6 +388,7 @@
                     .attr("y", d => yScale(d.Obesity))
                     .attr("width", xScale.bandwidth())
                     .attr("height", d => height - yScale(d.Obesity))
+					.attr("fill", d => (d.Obesity > meanValue) ? "red" : "steelblue")
                     .on("mouseover", function (event, d) {
                         // Show the tooltip on mouseover
                         const tooltip = d3.select("#chart")
@@ -401,6 +449,9 @@
 				<p>
                     Hovering the cursor over each bar will display the state name and obesity%
                 </p>
+				<p>
+                    Red bars represent the states which have higher than average obesity%
+                </p>
             `;
         } else if (selectedOption === "Diabetes") {
             barNarrative.innerHTML = `
@@ -413,6 +464,10 @@
                 </p>
 				<p>
                     Hovering the cursor over each bar will display the state name and type-2 diabetes%
+                </p>
+				
+				<p>
+                    Red bars represent the states which have higher than average type-2 diabetes%
                 </p>
             `;
         }
