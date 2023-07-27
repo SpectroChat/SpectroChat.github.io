@@ -64,7 +64,7 @@
   <center>
     <h1>Visualization of statewide obesity and type-2 diabetes in the USA</h1>
     <p><i>Navigate and press the buttons below to see different visualizations</i></p>
-	<p><i>The Bar-plot contains an interactive dropdown selection menu on the top-right corner to select either obesity or diabetes</i></p>
+	<p><i>The Bar-plot contains an interactive dropdown selection menu on top of the chart </i></p>
 	<p><i>The Geovisualization-plot will appear in a new window. </i></p>
   </center>
   <div id="chart"></div>
@@ -88,6 +88,7 @@
   
   
   let dropdownMenu;
+  let drop_word;
   
   function removePlot() {
       d3.select("#chart svg").remove();
@@ -97,6 +98,7 @@
 	    // Remove the dropdown menu if it exists
 	  if (dropdownMenu) {
 		dropdownMenu.remove();
+		drop_word.remove();
 		dropdownMenu = undefined; // Reset the dropdownMenu variable
 	  }
     }
@@ -141,11 +143,15 @@
         // Create separate color scales for "Obesity" and "Diabetes" values
         const colorScaleObesity = d3.scaleLinear()
           .domain(d3.extent(data, d => d.Obesity))
-          .range(["#ccece6", "#006d2c"]); // Lighter to darker shades of green
+		  //.range(["#FFA500", "#800000"]);
+		  //.range(["#fee5d9", "#67000d"]); // Lighter to darker shades of maroon
+          //.range(["#ccece6", "#006d2c"]); // Lighter to darker shades of green
+		  .range(["orange", "red", "maroon"]);
 
         const colorScaleDiabetes = d3.scaleLinear()
           .domain(d3.extent(data, d => d.Diabetes))
-          .range(["#f0f9e8", "#31a354"]); // Lighter to darker shades of green
+          //.range(["#f0f9e8", "#31a354"]); // Lighter to darker shades of green
+		  .range(["#fee5d9", "#67000d"]); // Lighter to darker shades of maroon
 
         // Function to get the combined color based on "Obesity" and "Diabetes" values
         const getColor = (d) => {
@@ -164,7 +170,7 @@
 		.attr("x2", width)
 		.attr("y1", yScale(meanDiabetes))
 		.attr("y2", yScale(meanDiabetes))
-		.style("stroke", "red")
+		.style("stroke", "green")
 		.style("stroke-dasharray", "3 3");
 		
 		 // Add the comment "Average diabetes" on the right side of the red dashed line
@@ -172,8 +178,8 @@
 		.attr("x", width) // Adjust the horizontal position as needed
 		.attr("y", yScale(meanDiabetes))
 		.attr("text-anchor", "start")
-		.style("fill", "red")
-		.text("Avg diabetes");
+		.style("fill", "green")
+		.text("Average diabetes");
 
 		
 
@@ -183,7 +189,7 @@
 		.attr("x2", xScale(meanObesity))
 		.attr("y1", 0)
 		.attr("y2", height)
-		.style("stroke", "red")
+		.style("stroke", "green")
 		.style("stroke-dasharray", "3 3");
 		
 		  // Add the comment above the red dashed line
@@ -191,8 +197,8 @@
 		.attr("x", xScale(meanObesity))
 		.attr("y", -10) // Adjust the vertical position as needed
 		.attr("text-anchor", "middle")
-		.style("fill", "red")
-		.text("Avg obesity");
+		.style("fill", "green")
+		.text("Average obesity");
 
         // Add X axis with label
         svg.append("g")
@@ -266,6 +272,65 @@
           .transition() // Add the transition to the circles
           .duration(1000) // Set the duration of the transition (in milliseconds)
           .attr("r", d => radiusScale(d.Obesity)); // Set the final radius based on "Obesity" value
+		  
+		  
+		  // Find data points with highest Obesity and Diabetes values
+const maxObesityData = data.reduce((max, d) => (d.Obesity > max.Obesity ? d : max), data[0]);
+const maxDiabetesData = data.reduce((max, d) => (d.Diabetes > max.Diabetes ? d : max), data[0]);
+
+
+
+// Add dashed arrows from circles to annotations
+const arrowMarker = svg.append("defs")
+  .append("marker")
+  .attr("id", "arrow-marker")
+  .attr("viewBox", "0 -5 10 10")
+  .attr("refX", 10) // Adjust the x position of the arrowhead
+  .attr("refY", 0)
+  .attr("markerWidth", 4)
+  .attr("markerHeight", 4)
+  .attr("orient", "auto")
+  .append("path")
+  .attr("d", "M0,-5L10,0L0,5")
+  .attr("class", "arrow-head");
+
+// Dashed arrow for highest Obesity value
+svg.append("line")
+  .attr("x1", xScale(maxObesityData.Obesity))
+  .attr("x2", xScale(maxObesityData.Obesity) + 40) // Extend the line beyond the circle for the text
+  .attr("y1", yScale(maxObesityData.Diabetes))
+  .attr("y2", yScale(maxObesityData.Diabetes))
+  .attr("stroke", "black")
+  .attr("stroke-dasharray", "3 3")
+  .attr("marker-end", "url(#arrow-marker)");
+
+// Text on the arrowhead for highest Obesity value
+svg.append("text")
+  .attr("x", xScale(maxObesityData.Obesity) + 50) // Position the text at the end of the arrow
+  .attr("y", yScale(maxObesityData.Diabetes))
+  .attr("dy", "0.35em") // Adjust vertical alignment
+  .style("fill", "black")
+  .text("Highest Obesity");
+
+// Dashed arrow for highest Diabetes value
+svg.append("line")
+  .attr("x1", xScale(maxDiabetesData.Obesity))
+  .attr("x2", xScale(maxDiabetesData.Obesity) + 40) // Extend the line beyond the circle for the text
+  .attr("y1", yScale(maxDiabetesData.Diabetes))
+  .attr("y2", yScale(maxDiabetesData.Diabetes))
+  .attr("stroke", "black")
+  .attr("stroke-dasharray", "3 3")
+  .attr("marker-end", "url(#arrow-marker)");
+
+// Text on the arrowhead for highest Diabetes value
+svg.append("text")
+  .attr("x", xScale(maxDiabetesData.Obesity) + 50) // Position the text at the end of the arrow
+  .attr("y", yScale(maxDiabetesData.Diabetes))
+  .attr("dy", "0.35em") // Adjust vertical alignment
+  .style("fill", "black")
+  .text("Highest Diabetes");
+
+
       });
 	  
 
@@ -312,13 +377,25 @@
       // Remove the scatter plot and narrative description if they exist
       removePlot();
 	  
+	  
+	   drop_word = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("top", "185px")
+        .style("left", "calc(46% - 60px)") // Adjust the left position as needed
+        .style("font-size", "14px")
+		.style("color", "darkblue")
+		.style("font-weight", "bold") // Set the font weight to bold
+        .text("Select option");
+	  
 	  // Add a dropdown menu
     dropdownMenu = d3.select("body")
         .append("select")
         .attr("id", "dropdown-menu")
         .style("position", "absolute")
-        .style("top", "20px")
-        .style("right", "20px")
+        .style("top", "185px")
+        .style("left", "50%") // Move the dropdown menu to the center horizontally
+        .style("transform", "translateX(-50%)") // Center the dropdown menu
         .on("change", function () {
             selectedOption = this.value;
             updateBarPlot(selectedOption); // Call the function to update the bar plot when a new option is selected
@@ -346,7 +423,7 @@
                 });
                 
 
-                const margin = { top: 30, right: 30, bottom: 100, left: 60 }; // Increase bottom margin to make space for longer X-axis labels
+                const margin = { top: 30, right: 150, bottom: 100, left: 50 }; // Increase bottom margin to make space for longer X-axis labels
                 const width = 1400 - margin.left - margin.right; // Increase the overall width
                 const height = 400 - margin.top - margin.bottom; // Increase the overall height
 
@@ -374,6 +451,44 @@
                     .range([height, 0]);
 					
 				const meanValue = d3.mean(selectedData, d => d.Obesity); // Calculate the mean value
+				
+				const maxValue = d3.max(selectedData, d => d.Obesity); // Get the highest value
+
+				// Define color thresholds
+				const lowestThreshold = meanValue;
+				const highestThreshold = maxValue - (maxValue - meanValue) / 2;
+
+
+			  // Add a red dashed horizontal line at the mean of Diabetes values
+			  svg.append("line")
+				.attr("x1", 0)
+				.attr("x2", width)
+				.attr("y1", yScale(meanValue))
+				.attr("y2", yScale(meanValue))
+				.style("stroke", "green")
+				.style("stroke-dasharray", "3 3");
+				
+				 // Add the comment "Average diabetes" on the right side of the red dashed line
+			  svg.append("text")
+				.attr("x", width) // Adjust the horizontal position as needed
+				.attr("y", yScale(meanValue))
+				.attr("text-anchor", "start")
+				.style("fill", "green")
+				.text("Average "+selectedOption);
+				
+			// Add label for the y-axis
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-weight", "bold")
+                .text(selectedOption === "Obesity" ? "Obesity %" : "Diabetes %");
+
+
+		
+
 
     
 
@@ -388,7 +503,16 @@
                     .attr("y", d => yScale(d.Obesity))
                     .attr("width", xScale.bandwidth())
                     .attr("height", d => height - yScale(d.Obesity))
-					.attr("fill", d => (d.Obesity > meanValue) ? "red" : "steelblue")
+					//.attr("fill", d => (d.Obesity > meanValue) ? "red" : "orange")
+					.attr("fill", d => {
+                    if (d.Obesity <= lowestThreshold) {
+                        return "orange";
+                    } else if (d.Obesity <= highestThreshold) {
+                        return "red";
+                    } else {
+                        return "maroon";
+                    }
+                })
                     .on("mouseover", function (event, d) {
                         // Show the tooltip on mouseover
                         const tooltip = d3.select("#chart")
@@ -450,7 +574,7 @@
                     Hovering the cursor over each bar will display the state name and obesity%
                 </p>
 				<p>
-                    Red bars represent the states which have higher than average obesity%
+                    The change of color of the bars from orange to maroon represent the higher obesity% for the states 
                 </p>
             `;
         } else if (selectedOption === "Diabetes") {
@@ -467,7 +591,7 @@
                 </p>
 				
 				<p>
-                    Red bars represent the states which have higher than average type-2 diabetes%
+                    The change of color of the bars from orange to maroon represent the higher type-2 diabetes% for the states  
                 </p>
             `;
         }
